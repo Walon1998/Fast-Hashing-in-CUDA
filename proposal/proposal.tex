@@ -16,23 +16,23 @@
 \parindent 0pt
 \maketitle
 
-\section*{Fast Hashing with GPU}
+\section*{SHA-256 on GPU}
+Hash functions are one of the most important operations in cryptographic applications. They are also used in data structures like hash tables and for calculating checksums to compare files. The acceleration of this routine is therefore of great importance for many areas.\\
 
-Hashing finds many applications today and often we are interested in fast
-computation of a lot of hashes. This is mostly due to the rise of
-cryptocurrencies but it also has applications in generating rainbow tables.
+With the recent rise of the cryptocurrencies, it is as important as never before to hash as fast as possible. 
+Many cryptocurrencies are based on the \textit{proof of work} principle, in which one party (the prover) proves to others (the verifiers) that a certain amount of computational effort has been expended for some purpose. For example, in the Bitcoin protocol \cite{nakamoto2012bitcoin}, users have to find a \emph{nonce} such that the SHA-256 hash of the nonce and the current block is smaller than the current target of the network. Since only the first miner who finds a nonce that fulfills the target receives a reward, it is important to try out many SHA-256 hashes as fast as possible. Today mostly ASICs (application-specific integrated circuit) are used to mine Bitcoins, as ASICs work more efficient and compute more hashes per second than traditional hardware.\\
 
-Many cryptocurrencies are based on the notion of a \textit{proof of work}, a
-process with a low probability of succeeding. For example, Bitcoin asks its
-miners to do a proof of work that includes all of the data in the current block.
-This process is based on the SHA-256 hashing function.~\cite{nakamoto2012bitcoin}
+
+The goal of this project is to accelerate SHA-256 computations by using a GPU.
+While SHA-256 alone does not allow for much parallelization due to sequential
+dependencies, it is possible to compute multiple hashes at the same time using a GPU. Furthermore, there are other approaches to create parallelizable hash functions like PARSHA-256 [cite] and SHA-3 [cite].
+
+ \cite{Dang13} used in the Bitcoin protocol has a lot sequential
+dependencies and a single hash computation is unlikely to be parallelizable,
+however the computation of many different hashes in parallel is possible.
 \\
 
-The goal of this project is to accelerate hash computations by using a GPU.
-SHA-256 \cite{Dang13} used in the Bitcoin protocol has a lot sequential
-dependencies and a single hash computation is unlikely to be parallelizable,
-however the computation of many different hashes in parallel is possible. Our
-project consists of the following milestones:
+Our project consists of the following milestones:
 
 \begin{reqlist}
   \req literature research, settling for a concrete hash function $H(\cdot)$
