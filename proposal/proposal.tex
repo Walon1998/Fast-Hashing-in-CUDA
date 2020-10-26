@@ -25,23 +25,26 @@ Many cryptocurrencies are based on the \textit{proof of work} principle, in whic
 
 The goal of this project is to accelerate SHA-256 computations by using a GPU.
 While SHA-256 alone does not allow for much parallelization due to sequential
-dependencies, it is possible to compute multiple hashes at the same time using a GPU. Furthermore, there are other approaches to create parallelizable hash functions like PARSHA-256 [cite] and SHA-3 [cite].
-
- \cite{Dang13} used in the Bitcoin protocol has a lot sequential
-dependencies and a single hash computation is unlikely to be parallelizable,
-however the computation of many different hashes in parallel is possible.
-\\
+dependencies, it is possible to compute multiple hashes at the same time using a GPU. Furthermore, there are other approaches to create parallelizable hash functions like PARSHA-256 \cite{parsha256} and SHA-3 \cite{sha3}.\\
 
 Our project consists of the following milestones:
 
 \begin{reqlist}
-  \req literature research, settling for a concrete hash function $H(\cdot)$
-    & \effort{1}
-  \req implement $H$ with CUDA~\cite{cuda}
+  \req Literature research    & \effort{1}
+  \req Implement SHA-256 in CUDA~\cite{cuda}
     & \effort{3}
-  \req evaluate and benchmark our implementation against existing
-       implementations~\cite{bench}
-    & \effort{2}
+
+ 
+     \req Implement PARSHA-256 \cite{parsha256} in CUDA
+    & \effort{4}
+    
+    \req (Optional) Implement SHA-3 \cite{sha3} in CUDA
+    & \effort{5}
+    
+      \req Evaluate and benchmark our implementation against existing
+       implementations~\cite{bench}    & \effort{2}
+    
+    
 \end{reqlist}
 
 \hfill

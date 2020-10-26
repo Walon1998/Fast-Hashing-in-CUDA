@@ -10,6 +10,7 @@
   url = {http://www.bitcoin.org/bitcoin.pdf},
   year = 2009
 },
+
 @article{Dang13,
   added-at = {2013-01-27T00:00:00.000+0100},
   author = {Dang, Quynh},
@@ -51,3 +52,27 @@ keywords = {parallel computing, benchmarking, statistics, data analysis},
 location = {Austin, Texas},
 series = {SC '15}
 },
+@InProceedings{parsha256,
+author="Pal, Pinakpani
+and Sarkar, Palash",
+editor="Johansson, Thomas",
+title="PARSHA-256 -- A New Parallelizable Hash Function and a Multithreaded Implementation",
+booktitle="Fast Software Encryption",
+year="2003",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="347--361",
+abstract="In this paper, we design a new hash function PARSHA-256. PARSHA-256 uses the compression function of SHA-256 along with the Sarkar-Schellenberg composition principle. As a consequence, PARSHA-256 is collision resistant if the compression function of SHA-256 is collision resistant. On the other hand, PARSHA-256 can be implemented using a binary tree of processors, resulting in a significant speed-up over SHA-256. We also show that PARSHA-256 can be efficiently implemented through concurrent programming on a single processor machine using a multithreaded approach. Experimental results on P4 running Linux show that for long messages the multithreaded implementation is faster than SHA-256.",
+isbn="978-3-540-39887-5"
+},
+@misc{sha,
+     title  = "SECURE HASH STANDARD",
+     url    = "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf",
+     year   = "August 2015"
+   },
+@misc{sha3,
+      title  = "SHA-3 Standard:  Permutation-Based Hash and Extendable-Output Functions ",
+      url    = "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf",
+      year   = "August 2015"
+    }
+
