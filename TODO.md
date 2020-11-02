@@ -21,21 +21,21 @@
 
 
 ## SHA-256
-* Main Method: char[] -> char[]
-* Padding: int[] -> int[]
+* Main Method: char[] -> char[] (Neville)
+* Padding: int[] -> int[] (Neville)
     * No conversion from char[] to int[] necessary, we can just interpret the chars as integers.
-* Prepare Message Schedule: int[] -> int
+* Prepare Message Schedule: int[] -> int (Neville)
     * We cant compute everything in advance, since it would need to many registers. We need only the last 16 simultaniously.
-* Main Loop    
-* Choice Method: int,int,int -> int
-* Majority Method: int,int,int -> int
-* Sigma_0 Method: int -> int
-* Sigma_1 Method: int -> int
-* sigma_o Method: int -> int
-* sigma_1 Method: int -> int
-* ROTL Method: int,int -> int
-* ROTR Method: int,int -> int
-* Add constants + initial Hash values
+* Main Loop (Neville)
+* Choice Method: int,int,int -> int (Neville)
+* Majority Method: int,int,int -> int (Neville)
+* Sigma_0 Method: int -> int (Neville)
+* Sigma_1 Method: int -> int (Basil)
+* sigma_o Method: int -> int (Basil)
+* sigma_1 Method: int -> int (Basil)
+* ROTL Method: int,int -> int (Basil)
+* ROTR Method: int,int -> int (Basil)
+* Add constants + initial Hash values (Basil)
 
 
 
