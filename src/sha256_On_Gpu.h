@@ -54,7 +54,7 @@ void sha256_on_gpu_test() {
     out = sha256_on_gpu("Neville");
     assert(out == "359ef5c170178ca7309c92222e3a03707f03194eed16b262ab35536cbd72536f");
 
-    out = sha256_on_gpu("Neville");
+    out = sha256_on_gpu("Basil");
     assert(out == "a3ef49d473eec07b75d8a7a93a71b1f46b0b7573aa35e4789b7572c52acff793");
 
     out = sha256_on_gpu(
