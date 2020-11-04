@@ -21,12 +21,12 @@
 
 
 ## SHA-256
-* Main Method: char[] -> char[] (Neville)
+* ~~Main Method: char[] -> char[] (Neville)~~
 * ~~Padding: int[] -> int[] (Neville)~~
     * ~~No conversion from char[] to int[] necessary, we can just interpret the chars as integers.~~
-* Prepare Message Schedule: int[] -> int (Neville)
-    * We cant compute everything in advance, since it would need to many registers. We need only the last 16 simultaniously.
-* Main Loop (Neville)
+* ~~Prepare Message Schedule: int[] -> int (Neville)~~
+    * ~~We cant compute everything in advance, since it would need to many registers. We need only the last 16 simultaniously.~~
+* ~~Main Loop (Neville)~~
 * ~~Choice Method: int,int,int -> int (Neville)~~
 * ~~Majority Method: int,int,int -> int (Neville)~~
 * ~~Sigma_0 Method: int -> int (Neville)~~
