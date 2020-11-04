@@ -12,6 +12,7 @@
 #ifndef SHAONGPU_RUN_TESTS_H
 #define SHAONGPU_RUN_TESTS_H
 
+// TODO: Run tests not only on cpu but also on gpu
 void run_tests() {
     std::cout << "Running Tests" << std::endl;
 
