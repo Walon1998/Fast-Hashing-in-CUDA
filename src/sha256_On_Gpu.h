@@ -25,7 +25,7 @@ std::string sha256_on_gpu(const std::string in) {
     cudaMemcpy(dev_In, padded.data(), padded.size() * sizeof(int), cudaMemcpyHostToDevice);
 
     // Cal kernel
-    main_loop_gpu<<<1, 1>>>(dev_In, padded.size(), dev_out);
+    main_loop_gpu<<<1, 1>>>(dev_In, padded.size(), dev_Out);
 
     // Copy result back
     std::vector<int> res_int(16);

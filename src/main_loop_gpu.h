@@ -5,10 +5,14 @@
 #ifndef SHA_ON_GPU_MAIN_LOOP_GPU_H
 #define SHA_ON_GPU_MAIN_LOOP_GPU_H
 
-#include <vector>
 #include "choose.cuh"
-#include "Sigma0.cuh"
+#include "K.h"
 #include "majority.cuh"
+#include "sigma0.cuh"
+#include "Sigma0.cuh"
+#include "sigma1.cuh"
+#include "Sigma1.cuh"
+#include <vector>
 
 __global__ void main_loop_gpu(const int *__restrict__ in, const int N, int *__restrict__ out) {
 
@@ -39,9 +43,9 @@ __global__ void main_loop_gpu(const int *__restrict__ in, const int N, int *__re
         // Otherwise this kernel should use only about 30 registers
 #pragma unroll
         for (int j = 16; j < 64; j++) {
-            message_schedule[j] = sigma_0(message_schedule[j - 2])
+            message_schedule[j] = sigma0(message_schedule[j - 2])
                                   + message_schedule[j - 7]
-                                  + sigma_0(message_schedule[j - 15])
+                                  + sigma0(message_schedule[j - 15])
                                   + message_schedule[j - 16];
         }
 
