@@ -16,7 +16,8 @@ std::string sha256_on_gpu(const std::string in) {
     std::vector<int> padded = padding(in);
 
 
-    // 2. Change byte ordering
+    // 2. Change byte ordering since SHA-256 uses big endian byte ordering
+    // This is only necessary to get the same result as other implementations
     for (int i = 0; i < padded.size(); i++) {
         padded[i] = __builtin_bswap32(padded[i]);
     }
