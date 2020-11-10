@@ -10,27 +10,27 @@ __host__ __device__ __inline__ u_int32_t SHR(const u_int32_t x) {
 };
 
 __host__ __device__ void SHR_test() {
-//    int res = SHR<0>(0);
-//    assert(res == 0);
-//    res = SHR<23>(0);
-//    assert(res == 0);
-//    res = SHR<32>(0);
-//    assert(res == 0);
-//
-//    res = SHR<0>(0xffffffff);
-//    assert(res == 0xffffffff);
-//
-//    res = SHR<4>(0xffffffff);
-//    assert(res == 0x0fffffff);
-//
-//    res = SHR<28>(0xffffffff);
-//    assert(res == 0x0000000f);
-//
-//    res = SHR<31>(0xffffffff);
-//    assert(res == 1);
-//
-//    res = SHR<1>(3);
-//    assert(res == 1);
+    int res = SHR<0>(0);
+    assert(res == 0);
+    res = SHR<23>(0);
+    assert(res == 0);
+    res = SHR<32>(0);
+    assert(res == 0);
+
+    res = SHR<0>(0xffffffff);
+    assert(res == 0xffffffff);
+
+    res = SHR<4>(0xffffffff);
+    assert(res == 0x0fffffff);
+
+    res = SHR<28>(0xffffffff);
+    assert(res == 0x0000000f);
+
+    res = SHR<31>(0xffffffff);
+    assert(res == 1);
+
+    res = SHR<1>(3);
+    assert(res == 1);
 }
 
 #endif //SHAONGPU_ROTL_CUH
