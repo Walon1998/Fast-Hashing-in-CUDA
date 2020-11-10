@@ -15,6 +15,12 @@ std::string sha256_on_gpu(const std::string in) {
     // 1. Padding
     std::vector<int> padded = padding(in);
 
+
+    // 2. Change byte ordering
+    for (int i = 0; i < padded.size(); i++) {
+        padded[i] = __builtin_bswap32(padded[i]);
+    }
+
     // Copy data to gpu memory
     int *dev_In;
     int *dev_Out;
@@ -28,7 +34,7 @@ std::string sha256_on_gpu(const std::string in) {
     main_loop_gpu<<<1, 1>>>(dev_In, padded.size(), dev_Out);
 
     // Copy result back
-    std::vector<int> res_int(16);
+    std::vector<int> res_int(8);
     cudaMemcpy(res_int.data(), dev_Out, 8 * sizeof(int), cudaMemcpyDeviceToHost);
 
 
@@ -36,7 +42,7 @@ std::string sha256_on_gpu(const std::string in) {
     std::string res_string = "";
     char buffer[50];
     for (int i = 0; i < res_int.size(); i++) {
-        int curr = __builtin_bswap32(res_int[i]);
+        int curr = res_int[i];
         sprintf(buffer, "%x", curr);
         res_string += buffer;
 
@@ -46,9 +52,11 @@ std::string sha256_on_gpu(const std::string in) {
 
 void sha256_on_gpu_test() {
 
-    // TODO: Add some random tests and compare with cpu version
+    std::string out = sha256_on_cpu("abc");
+    assert(out == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 
-    std::string out = sha256_on_gpu("");
+    out = sha256_on_gpu("");
+    std::cout << out << std::endl;
     assert(out == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 
     out = sha256_on_gpu("Neville");
@@ -63,7 +71,7 @@ void sha256_on_gpu_test() {
     assert(out == "598ae7a5cd9e62a4b605063f1f353a82aeb75a854a35e322c710275ed3f82883");
 
     out = sha256_on_gpu("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
-    assert(out == "5df6e0e2761359d30a8275058e299fcc0381534545f55cf43e41983f5d4c9456");
+    assert(out == "cd372fb85148700fa88095e3492d3f9f5beb43e555e5ff26d95f5a6adc36f8e6");
 
 
 }

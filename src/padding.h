@@ -16,15 +16,8 @@
 // return vector is currently passed by value, could be optimized
 std::vector<int> padding(const std::string &in) {
 
-    // No Padding necessary
-    if (in.length() % 64 == 0) {
-        const int newlength = in.length() / 4;
-        std::vector<int> out(newlength);
-        memcpy(out.data(), in.data(), in.length() * sizeof(char));
-        return out;
 
-    } else {
-        // Padding necessary
+        // Padding is always performed!
         int remainder = in.length() % 64;
         int k;
 
@@ -54,19 +47,15 @@ std::vector<int> padding(const std::string &in) {
         const u_int64_t bitlength = in.length() * sizeof(char) * 8;
         end_point[0] = __builtin_bswap64(bitlength); // Save length and change byte ordering
         return out;
-    }
-
 
 }
 
 void padding_test() {
 
-    // TODO: Does "" need padding?
-    // TODO: Padding necessary even if block is message is multiple of 512?
 
     std::vector<int> out = padding("abc");
     auto testi = (u_int8_t *) out.data();
-    for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 64; i++) {
         if (i == 0) {
             assert((testi[i] == 'a'));
         } else if (i == 1) {

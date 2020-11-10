@@ -20,8 +20,6 @@
 
 // TODO: Run tests not only on cpu but also on gpu
 void run_tests() {
-    std::cout << std::endl;
-
     maj_test();
     ch_test();
     ROTR_test();
