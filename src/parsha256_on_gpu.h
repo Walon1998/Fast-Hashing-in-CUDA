@@ -132,7 +132,7 @@ std::string parsha256_on_gpu(const std::string in) {
     cudaMemcpy(dev_In, padded.data(), padded.size() * sizeof(int), cudaMemcpyHostToDevice);
 
 //    // Cal kernel
-    parsha256_kernel_gpu<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1, dev_buf2, out, R, t);
+    parsha256_kernel_gpu<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1, dev_buf2, out, R, t, b, L);
 
 //    // Copy result back
     std::vector<int> res_int(8);

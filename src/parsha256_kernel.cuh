@@ -5,7 +5,7 @@
 #ifndef SHA_ON_GPU_PARSHA256_KERNEL_CUH
 #define SHA_ON_GPU_PARSHA256_KERNEL_CUH
 
-__global__ void parsha256_kernel_gpu(int *__restrict__ in, int *__restrict__ buf1, int *__restrict__ buf2, int *__restrict__ out, const int R, const int t) {
+__global__ void parsha256_kernel_gpu(int *__restrict__ in, int *__restrict__ buf1, int *__restrict__ buf2, int *__restrict__ out, const int R, const int t, const int b, const int L) {
 
     const int id = threadIdx.x + blockIdx.x * blockDim.x; // My id
     const int parent = id / 2; // Parent id
@@ -135,16 +135,32 @@ __global__ void parsha256_kernel_gpu(int *__restrict__ in, int *__restrict__ buf
 
     }
 
-    if (threadIdx.x == 0) {
-        out[0] = buf1_me[0];
-        out[1] = buf1_me[1];
-        out[2] = buf1_me[2];
-        out[3] = buf1_me[3];
-        out[4] = buf1_me[4];
-        out[5] = buf1_me[5];
-        out[6] = buf1_me[6];
-        out[7] = buf1_me[7];
+    if (id != 0) {
+        return;
     }
+
+    if (b > 0) {
+        parsha256_sha256(buf1_child1, buf1_child2, in, buf2_me);
+
+    } else {
+        // Padding
+        for (int i = 0; i < 15; i++) {
+            buf1_child1[8 + i] = 0;
+        }
+        buf1_child1[23] = L;
+        parsha256_sha256(buf1_child1, buf1_child1 + 8, buf1_child1 + 16, buf2_me);
+    }
+
+
+    out[0] = buf2_me[0];
+    out[1] = buf2_me[1];
+    out[2] = buf2_me[2];
+    out[3] = buf2_me[3];
+    out[4] = buf2_me[4];
+    out[5] = buf2_me[5];
+    out[6] = buf2_me[6];
+    out[7] = buf2_me[7];
+
 
 }
 
