@@ -4,7 +4,7 @@ project(SHA_ON_GPU CUDA)
 
 set(CMAKE_CUDA_STANDARD 14)
 
-add_executable(SHA_ON_GPU main.cu)
+add_executable(SHA_ON_GPU main.cu lambda.h delta.h parsha256_kernel.cuh)
 
 set_target_properties(
         SHA_ON_GPU

@@ -2,8 +2,8 @@
 // Created by neville on 04.11.20.
 //
 
-#ifndef SHA_ON_GPU_MAIN_LOOP_CPU_H
-#define SHA_ON_GPU_MAIN_LOOP_CPU_H
+#ifndef SHA_ON_GPU_SHA256_KERNEL_GPU_H
+#define SHA_ON_GPU_SHA256_KERNEL_GPU_H
 
 #include "choose.cuh"
 #include "majority.cuh"
@@ -13,9 +13,7 @@
 #include "Sigma1.cuh"
 #include <vector>
 
-// return vector is currently passed by value, could be optimized
-std::vector<int> main_loop_cpu(const std::vector<int> in) {
-    std::vector<int> W(64);
+__global__ void sha256_kernel_gpu(const int *__restrict__ in, const int N, int *__restrict__ out) {
 
     constexpr u_int32_t K[64] =
             {0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -37,13 +35,22 @@ std::vector<int> main_loop_cpu(const std::vector<int> in) {
     u_int32_t H6 = 0x1f83d9ab;
     u_int32_t H7 = 0x5be0cd19;
 
+    register int W[64];
 
-    for (int i = 0; i < in.size(); i += 16) {
+    for (int i = 0; i < N; i += 16) {
 
         // File Message Schedule
+#pragma unroll
         for (int j = 0; j < 16; j++) {
             W[j] = in[i + j];
         }
+
+        // Only 16 values of the message schedule are used at the same time
+        // it would be possible to integrate this loop in the next one to save registers.
+        // A smart compiler would be able to do this on his own.
+        // If our does uses a lot of registers (> 80), we have to do this on our own.
+        // Otherwise this kernel should use only about 30 registers
+#pragma unroll
         for (int j = 16; j < 64; j++) {
             W[j] = sigma1(W[j - 2])
                    + W[j - 7]
@@ -61,10 +68,11 @@ std::vector<int> main_loop_cpu(const std::vector<int> in) {
         u_int32_t g = H6;
         u_int32_t h = H7;
 
-
+#pragma unroll
         for (int j = 0; j < 64; j++) {
-            const u_int32_t T1 = h + Sigma1(e) + ch(e, f, g) + K[j] + W[j];
-            const u_int32_t T2 = Sigma0(a) + maj(a, b, c);
+
+            const int T1 = h + Sigma1(e) + ch(e, f, g) + K[j] + W[j];
+            const int T2 = Sigma0(a) + maj(a, b, c);
             h = g;
             g = f;
             f = e;
@@ -87,16 +95,16 @@ std::vector<int> main_loop_cpu(const std::vector<int> in) {
 
     }
 
-    std::vector<int> result(8);
-    result[0] = H0;
-    result[1] = H1;
-    result[2] = H2;
-    result[3] = H3;
-    result[4] = H4;
-    result[5] = H5;
-    result[6] = H6;
-    result[7] = H7;
-    return result;
+    if (threadIdx.x == 0 && blockIdx.x == 0) {
+        out[0] = H0;
+        out[1] = H1;
+        out[2] = H2;
+        out[3] = H3;
+        out[4] = H4;
+        out[5] = H5;
+        out[6] = H6;
+        out[7] = H7;
+    }
 }
 
-#endif //SHA_ON_GPU_MAIN_LOOP_CPU_H
+#endif //SHA_ON_GPU_SHA256_KERNEL_GPU_H

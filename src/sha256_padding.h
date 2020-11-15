@@ -14,7 +14,7 @@
 #define SHAONGPU_PADDING_H
 
 // return vector is currently passed by value, could be optimized
-std::vector<int> padding(const std::string &in) {
+std::vector<int> sha256_padding(const std::string &in) {
 
 
         // Padding is always performed!
@@ -50,10 +50,10 @@ std::vector<int> padding(const std::string &in) {
 
 }
 
-void padding_test() {
+void sha256_padding_test() {
 
 
-    std::vector<int> out = padding("abc");
+    std::vector<int> out = sha256_padding("abc");
     auto testi = (u_int8_t *) out.data();
         for (int i = 0; i < 64; i++) {
         if (i == 0) {

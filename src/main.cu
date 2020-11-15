@@ -7,6 +7,7 @@ int main(int argc, char* argv[]) {
         std::cout << sha256_on_cpu(argv[1]) << std::endl;
     }
 
-    run_tests();
+//    sha256_run_tests();
+    parsha256_run_tests();
     return 0;
 }
