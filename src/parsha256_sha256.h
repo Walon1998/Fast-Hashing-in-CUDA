@@ -7,15 +7,12 @@
 
 #include "choose.cuh"
 #include "majority.cuh"
-#include "sigma0.cuh"
-#include "Sigma0.cuh"
-#include "sigma1.cuh"
-#include "Sigma1.cuh"
+#include "sigma.cuh"
 #include <vector>
 
-__device__ __host__ void parsha256_sha256(const int *__restrict__ in8, const int *__restrict__ in16, const int *__restrict__ in24, int *__restrict__ out) {
+__device__ __host__ void parsha256_sha256(const int *__restrict__ in_0, const int *__restrict__ in_8, const int *__restrict__ in_16, int *__restrict__ out) {
 
-    constexpr u_int32_t K[64] =
+    constexpr uint32_t K[64] =
             {0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
              0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
              0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -26,29 +23,31 @@ __device__ __host__ void parsha256_sha256(const int *__restrict__ in8, const int
              0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
     // Initial Hash values are first 8 ints of input
-    u_int32_t H0 = in8[0];
-    u_int32_t H1 = in8[1];
-    u_int32_t H2 = in8[2];
-    u_int32_t H3 = in8[3];
-    u_int32_t H4 = in8[4];
-    u_int32_t H5 = in8[5];
-    u_int32_t H6 = in8[6];
-    u_int32_t H7 = in8[7];
+    uint32_t H0 = in_0[0];
+    uint32_t H1 = in_0[1];
+    uint32_t H2 = in_0[2];
+    uint32_t H3 = in_0[3];
+    uint32_t H4 = in_0[4];
+    uint32_t H5 = in_0[5];
+    uint32_t H6 = in_0[6];
+    uint32_t H7 = in_0[7];
 
 
-    register int W[64];
+    uint32_t W[64];
 
 
     // File Message Schedule
 #pragma unroll
     for (int j = 0; j < 8; j++) {
-        W[j] = in16[j];
+        W[j] = in_8[j];
     }
 
 #pragma unroll
-    for (int j = 8; j < 16; j++) {
-        W[j] = in24[j];
+    for (int j = 0; j < 8; j++) {
+        W[j + 8] = in_16[j];
     }
+
+
 
     // Only 16 values of the message schedule are used at the same time
     // it would be possible to integrate this loop in the next one to save registers.
@@ -63,15 +62,17 @@ __device__ __host__ void parsha256_sha256(const int *__restrict__ in8, const int
                + W[j - 16];
     }
 
+
+
     // Initial Hash values
-    u_int32_t a = H0;
-    u_int32_t b = H1;
-    u_int32_t c = H2;
-    u_int32_t d = H3;
-    u_int32_t e = H4;
-    u_int32_t f = H5;
-    u_int32_t g = H6;
-    u_int32_t h = H7;
+    uint32_t a = H0;
+    uint32_t b = H1;
+    uint32_t c = H2;
+    uint32_t d = H3;
+    uint32_t e = H4;
+    uint32_t f = H5;
+    uint32_t g = H6;
+    uint32_t h = H7;
 
 #pragma unroll
     for (int j = 0; j < 64; j++) {

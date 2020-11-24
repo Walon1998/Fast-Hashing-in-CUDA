@@ -25,7 +25,7 @@ std::vector<int> parsha256_padding(const std::string &in, const int added_zeros_
 
     memcpy(out.data(), in.data(), in.length() * sizeof(char)); // copy existing data
 
-    auto *start_point = (u_int8_t *) out.data();
+    auto *start_point = (uint8_t *) out.data();
 
     // Fill zeros
     for (unsigned int i = in.length(); i < newlength; i++) {

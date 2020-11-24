@@ -11,7 +11,10 @@
 #include "parsha256_sha256.h"
 #include "lambda.h"
 #include "delta.h"
-#include "parsha256_kernel.cuh"
+#include "parsha256_kernel_firstRound.cuh"
+#include "parsha256_kernel_middleRounds.cuh"
+#include "parsha256_kernel_decreasingRounds.cuh"
+#include "parsha256_kernel_lastRound.cuh"
 #include <sstream>
 
 
@@ -33,20 +36,27 @@ std::string parsha256_on_gpu(const std::string in) {
 
     if (L < delta(0, m, n, l)) {
 
+
         std::vector<int> padded = parsha256_padding(in, n - l - L); // IV padding
 
 
 
-        parsha256_sha256(padded.data(), padded.data() + 8, padded.data() + 16, padded.data()); // Write intermediate result to input buffer
+
+
+        parsha256_sha256(padded.data(), padded.data() + 8, padded.data() + 16, padded.data());
+
+
+
+        // Write intermediate result to input buffer
         const int diff = (n - m) / 32; // How many numbers to pad
 
         for (int i = 0; i < diff - 1; i++) {
             padded[8 + i] = 0;
         }
-        padded[m / 32 - 1] = __builtin_bswap32(L);
+        padded[m / 32 - 1] = _byteswap_ulong(L);
 
 //        for (int &i : padded) {
-//            i = __builtin_bswap32(i);
+//            i = _byteswap_uint32(i);
 //        }
 
 
@@ -110,7 +120,7 @@ std::string parsha256_on_gpu(const std::string in) {
     // 2. Change byte ordering since SHA-256 uses big endian byte ordering
     // This is only necessary to get the same result as other implementations
 //    for (int &i : padded) {
-//        i = __builtin_bswap32(i);
+//        i = _byteswap_uint32(i);
 //    }
 //
 
@@ -132,7 +142,35 @@ std::string parsha256_on_gpu(const std::string in) {
     cudaMemcpy(dev_In, padded.data(), padded.size() * sizeof(int), cudaMemcpyHostToDevice);
 
 //    // Cal kernel
-    parsha256_kernel_gpu<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1, dev_buf2, out, R, t, b, L);
+
+// First Round
+    parsha256_kernel_gpu_firstRound<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1);
+    dev_In += threads * 24; // Consumed Message so far, every threads consumes 24 integers
+
+    // Rounds 2 to p + 1
+    const int p = R - t - 1;
+    for (int i = 0; i < p; i++) {
+        parsha256_kernel_gpu_middleRound<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1, dev_buf2);
+        dev_In += 8 * (threads / 2) + 24 * (threads / 2); // Consumed Message so far, half of the threads consume 8 ints (non leafs), other halfs consumes again 24 ints
+        std::swap(dev_buf1, dev_buf2);
+    }
+
+    // Decreasing Rounds
+    for (int i = 0; i < t; i++) {
+        parsha256_kernel_gpu_decreasingRound<<<thread_blocks, threads_per_threadsblock>>>(dev_In, dev_buf1, dev_buf2);
+        std::swap(dev_buf1, dev_buf2);
+        threads /= 2;
+        dev_In += 8 * threads; // Half of the thread consume 8 ints the other half copy their stuff around
+        thread_blocks = (threads_per_threadsblock + threads - 1) / threads_per_threadsblock;
+
+    }
+
+    std::swap(dev_buf1, dev_buf2);
+//    assert(threads == 1)
+    dev_In += 8;
+    parsha256_kernel_gpu_lastRound<<<1, 1>>>(dev_In, dev_buf1, dev_buf2, out, b, L);
+
+
 
 //    // Copy result back
     std::vector<int> res_int(8);

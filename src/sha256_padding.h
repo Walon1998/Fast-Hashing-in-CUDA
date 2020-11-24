@@ -33,20 +33,20 @@ std::vector<int> sha256_padding(const std::string &in) {
 
         memcpy(out.data(), in.data(), in.length() * sizeof(char)); // copy existing data
 
-        // Write leading 1
-        auto *start_point = (u_int8_t *) out.data();
-        start_point[in.length()] = 0x80;
+    // Write leading 1
+    auto *start_point = (uint8_t *) out.data();
+    start_point[in.length()] = 0x80;
 
-        // Fill leading zeros
-        for (unsigned int i = in.length() + 1; i < newlength - 4; i++) {
-            start_point[i] = 0;
-        }
+    // Fill leading zeros
+    for (unsigned int i = in.length() + 1; i < newlength - 4; i++) {
+        start_point[i] = 0;
+    }
 
 //        // Write L at the end
-        auto end_point = (u_int64_t *) &start_point[newlength - 8];
-        const u_int64_t bitlength = in.length() * sizeof(char) * 8;
-        end_point[0] = __builtin_bswap64(bitlength); // Save length and change byte ordering
-        return out;
+    auto end_point = (uint64_t *) &start_point[newlength - 8];
+    const uint64_t bitlength = in.length() * sizeof(char) * 8;
+    end_point[0] = _byteswap_uint64(bitlength); // Save length and change byte ordering
+    return out;
 
 }
 
@@ -54,7 +54,7 @@ void sha256_padding_test() {
 
 
     std::vector<int> out = sha256_padding("abc");
-    auto testi = (u_int8_t *) out.data();
+    auto testi = (uint8_t *) out.data();
         for (int i = 0; i < 64; i++) {
         if (i == 0) {
             assert((testi[i] == 'a'));

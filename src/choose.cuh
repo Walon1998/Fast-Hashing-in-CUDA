@@ -6,18 +6,18 @@
 #ifndef SHAONGPU_CHOOSE_CUH
 #define SHAONGPU_CHOOSE_CUH
 
-__host__ __device__ __inline__ u_int32_t ch(const u_int32_t x, const u_int32_t y, const u_int32_t z) {
+__host__ __device__ __inline__ uint32_t ch(const uint32_t x, const uint32_t y, const uint32_t z) {
 
     return (x & y) ^ (~x & z);
 }
 
 __host__ __device__ void ch_test() {
 
-    u_int32_t x = 0x00000001;
-    u_int32_t y = 0x00000001;
-    u_int32_t z = 0x00000001;
+    uint32_t x = 0x00000001;
+    uint32_t y = 0x00000001;
+    uint32_t z = 0x00000001;
 
-    u_int32_t res = ch(x, y, z);
+    uint32_t res = ch(x, y, z);
     assert(res == 0x00000001);
 
     x = 0x00000001;

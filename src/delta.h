@@ -5,7 +5,7 @@
 #ifndef SHA_ON_GPU_DELTA_H
 #define SHA_ON_GPU_DELTA_H
 
-u_int64_t delta(const u_int32_t i, const u_int32_t m, const u_int32_t n, const u_int32_t l) {
+uint64_t delta(const uint32_t i, const uint32_t m, const uint32_t n, const uint32_t l) {
     return std::pow(2, i) * (2 * n - 2 * m - l);
 }
 

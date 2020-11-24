@@ -5,7 +5,7 @@
 #define SHAONGPU_SHR_CUH
 
 template<unsigned int N>
-__host__ __device__ __inline__ u_int32_t SHR(const u_int32_t x) {
+__host__ __device__ __inline__ uint32_t SHR(const uint32_t x) {
     return x >> N;
 };
 

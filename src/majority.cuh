@@ -7,16 +7,16 @@
 #ifndef SHAONGPU_MAJORITY_CUH
 #define SHAONGPU_MAJORITY_CUH
 
-__host__ __device__ __inline__ u_int32_t maj(const u_int32_t x, const u_int32_t y, const u_int32_t z) {
+__host__ __device__ __inline__ uint32_t maj(const uint32_t x, const uint32_t y, const uint32_t z) {
     return (x & y) ^ (x & z) ^ (y & z);
 }
 
 __host__ __device__ void maj_test() {
-    u_int32_t x = 0;
-    u_int32_t y = 0;
-    u_int32_t z = 0;
+    uint32_t x = 0;
+    uint32_t y = 0;
+    uint32_t z = 0;
 
-    u_int32_t res = maj(x, y, z);
+    uint32_t res = maj(x, y, z);
     assert(res == 0);
 
     x = 0x00000001;
