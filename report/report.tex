@@ -137,12 +137,12 @@ PARSHA-256 uses a binary tree of processor height $T$, note that $T$ is an argum
 \end{figure} 
 
 The behaviour of any processor $P_i$ with input $y$ is described as follows:
-$$
+\begin{equation}\label{eq_proc}
 P_i(y) = \begin{cases}
 h(y) & \text{if } |y| = n \\
 y & \text{else}
 \end{cases}
-$$
+\end{equation}
 
 \subsubsection{Formatting the Message}
 Similar to SHA-256, the incoming message has to be padded and divided into blocks. While for SHA-256, this procedure was relatively simple, as the message should be a multiple of 512 bits, which is also the block size, in PARSHA-256 it is more complicated.
@@ -211,12 +211,12 @@ We note that only 16 words of the message schedule are used simultaneously, whic
 After all blocks are processed the final result is written back to global memory.
 
 \subsection{PARSHA-256}
-Similar to SHA-256, all preprocessing is performed in the host. Once the message is padded, the tree structure and all necessary information to hash the input message is known, 3 global buffers are allocated and the kernel is launched using the required number of threads and blocks. One buffer stores the padded input message, the other two buffers store the output for each thread in a specific round. Using two buffers to store the intermediate results allows to read from one buffer while the other one is written to which significantly reduces the amount of synchronization needed between threads.
+Similar to SHA-256, all preprocessing is performed in the host. Once the message is padded, the tree structure and all necessary information to hash the input message is known, 3 global buffers are allocated. One buffer stores the padded input message, the other two buffers store the output for each thread in a specific round. Using two buffers to store the intermediate results allows to read from one buffer while the other one is written to which significantly reduces the amount of synchronization needed between threads.
 
-Each thread knows the \emph{id} of its children and thus the address, from where the input can be read for the next round. The kernel itself is divided into different rounds, as described in \ref{parsha-hash}, in each round each thread calls the compression function using its input. After each round, the threads are synchronized using \emph{cudaDeviceSynchronize()} and the two buffers are swapped, such that the output from the previous round is the input for the next round. 
+Each thread knows the \emph{id} of its children and thus the address, from where the input can be read for the next round. One kernel is launched for each round, as described in \ref{parsha-hash}. Four different kernels were implemented, one for the first round, one for round 2 to $(p+1)$, one for the last round and one for all the other rounds, in which some threads copy the input to the output buffer.  In each round each thread calls the compression function using its input or copies its input to the output buffer, as described in Equation \ref{eq_proc}. After each round, the two buffers are swapped, such that the output from the previous round is the input for the next round. 
 
 \subsubsection{Shared Memory and Registers}
-The exclusive use of global memory and \emph{cudaDeviceSynchronize()} for communication and synchronization between threads makes the code relatively elegant, since execution is determined only by which thread has which children. However, this approach is also slow and does not make use of the more advanced memory and synchronization mechanisms of modern GPUs, such as shared memory, registers or warp shuffle instructions.
+The exclusive use of global memory and multiple kernel launches for communication and synchronization between threads makes the code relatively elegant, since execution is determined only by which thread has which children. However, this approach is also slow and does not make use of the more advanced memory and synchronization mechanisms of modern GPUs, such as shared memory, registers or warp shuffle instructions.
 
 The first problem, if these mechanisms are to be used, is the following: The PARSHA-256 specification only specifies a maximum tree height $T$, but if the message is sufficiently small, a smaller tree with effective tree height $t$ is used instead. This means that the exact structure of the tree is not known in advance and therefore it is also not how many threads will be launched.
 
@@ -224,6 +224,30 @@ The second problem concerns older models of NVIDIA GPUs in which all threads in 
 In the code itself these behaviors would have to be distinguished with an \emph{if}-statement. Since all threads share the same instruction pointer, both cases are executed sequentially and the latency has basically doubled. In newer architectures this behaviour does not occur any more since every thread has its own instruction pointer.
 
 Assuming that the GPU used and the specified tree are known in advance, each thread has its own instruction counter, it is possible to implement PARSHA-256 more efficiently by using more advanced mechanisms. We will now present implementations for some special cases.
+
+\mypar{Warp PARSHA-256}\\
+
+\begin{figure}\centering
+\includegraphics[scale=0.15]{warp.pdf}
+  \caption{Warp reduce}
+\end{figure}
+
+
+\begin{figure}\centering
+\includegraphics[scale=0.125]{block.pdf}
+  \caption{Block reduce}
+\end{figure}
+
+\begin{figure}\centering
+\includegraphics[scale=0.125]{device.pdf}
+  \caption{Block reduce}
+\end{figure}
+
+
+
+
+
+
 
 
 
