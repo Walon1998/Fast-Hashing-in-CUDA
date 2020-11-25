@@ -231,7 +231,7 @@ Assuming that the GPU used and the specified tree are known in advance, each thr
 \mypar{Warp PARSHA-256} If $t \leq 5$ at most 32 threads are launched, which means the whole calculation can fit into in a single warp, see Fig. \ref{fig:warp}. In that case warp shuffle instruction can be used to exchange the data, \emph{\_\_syncwarp()} can be used to synchronize the threads and the intermediate results can be stored into registers.
 
 \begin{figure}[h]\centering
-\includegraphics[scale=0.15]{warp.pdf}
+\includegraphics[scale=0.15]{warp2.pdf}
   \caption{Warp PARHSA-256. The threads communicate using registers,\emph{\_\_syncwarp()} and warp shuffle instructions. \label{fig:warp}}
 \end{figure}
 
@@ -239,7 +239,7 @@ Assuming that the GPU used and the specified tree are known in advance, each thr
 \mypar{Block PARSHA-256} If $t \leq 10$ at most 1024 threads are launched, which means the whole calculation can fit into in a single block, see Fig. \ref{fig:block}. In that case shared memory and \emph{\_\_syncthreads()} can be used to communicate and synchronize between the warps. Note that in this case, the property that a thread with the id $i$ has two children with the id $2i$ and $2i+1$ no longer applies, but a more complicated relationship is required so that communication across warps is minimized.
 
 \begin{figure}[h]\centering
-\includegraphics[scale=0.125]{block.pdf}
+\includegraphics[scale=0.125]{block2.pdf}
   \caption{Block PARHSA-256. The warps communicate using shared memory and \emph{\_\_syncthreads}. \label{fig:block}}
 \end{figure}
 
