@@ -4,8 +4,11 @@
 % --------------------------------------------------------------------------
 
 \documentclass[letterpaper]{article}
+\usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{spconf,amsmath,amssymb,graphicx}
 \usepackage{url}
+
 % Example definitions.
 % --------------------
 % nice symbols for real and complex numbers
@@ -213,7 +216,7 @@ After all blocks are processed the final result is written back to global memory
 \subsection{PARSHA-256}
 Similar to SHA-256, all preprocessing is performed in the host. Once the message is padded, the tree structure and all necessary information to hash the input message is known, 3 global buffers are allocated. One buffer stores the padded input message, the other two buffers store the output for each thread in a specific round. Using two buffers to store the intermediate results allows to read from one buffer while the other one is written to which significantly reduces the amount of synchronization needed between threads.
 
-Each thread knows the \emph{id} of its children and thus the address, from where the input can be read for the next round. One kernel is launched for each round, as described in \ref{parsha-hash}. Four different kernels were implemented, one for the first round, one for round 2 to $(p+1)$, one for the last round and one for all the other rounds, in which some threads copy the input to the output buffer.  In each round each thread calls the compression function using its input or copies its input to the output buffer, as described in Equation \ref{eq_proc}. After each round, the two buffers are swapped, such that the output from the previous round is the input for the next round. 
+Each thread knows the \emph{id} of its children and thus the address, from where the input can be read for the next round. One kernel is launched for each round, as described in \ref{parsha-hash}. Four different kernels were implemented, one for the first round, one for round 2 to $(p+1)$, one for the last round and one for all the other rounds, in which some threads copy the input to the output buffer. As described in Equation \ref{eq_proc},  in each round each thread calls the compression function using its input or copies its input to the output buffer. After each round, the two buffers are swapped, such that the output from the previous round is the input for the next round. 
 
 \subsubsection{Shared Memory and Registers}
 The exclusive use of global memory and multiple kernel launches for communication and synchronization between threads makes the code relatively elegant, since execution is determined only by which thread has which children. However, this approach is also slow and does not make use of the more advanced memory and synchronization mechanisms of modern GPUs, such as shared memory, registers or warp shuffle instructions.
@@ -225,23 +228,22 @@ In the code itself these behaviors would have to be distinguished with an \emph{
 
 Assuming that the GPU used and the specified tree are known in advance, each thread has its own instruction counter, it is possible to implement PARSHA-256 more efficiently by using more advanced mechanisms. We will now present implementations for some special cases.
 
-\mypar{Warp PARSHA-256}\\
+\mypar{Warp PARSHA-256} If $t \leq 5$ at most 32 threads are launched, which means the whole calculation can fit into in a single warp, see Fig. \ref{fig:warp}. In that case warp shuffle instruction can be used to exchange the data, \emph{\_\_syncwarp()} can be used to synchronize the threads and the intermediate results can be stored into registers.
 
-\begin{figure}\centering
+\begin{figure}[h]\centering
 \includegraphics[scale=0.15]{warp.pdf}
-  \caption{Warp reduce}
+  \caption{Warp PARHSA-256. The threads communicate using registers,\emph{\_\_syncwarp()} and warp shuffle instructions. \label{fig:warp}}
 \end{figure}
 
 
-\begin{figure}\centering
+\mypar{Block PARSHA-256} If $t \leq 10$ at most 1024 threads are launched, which means the whole calculation can fit into in a single block, see Fig. \ref{fig:block}. In that case shared memory and \emph{\_\_syncthreads()} can be used to communicate and synchronize between the warps. Note that in this case, the property that a thread with the id $i$ has two children with the id $2i$ and $2i+1$ no longer applies, but a more complicated relationship is required so that communication across warps is minimized.
+
+\begin{figure}[h]\centering
 \includegraphics[scale=0.125]{block.pdf}
-  \caption{Block reduce}
+  \caption{Block PARHSA-256. The warps communicate using shared memory and \emph{\_\_syncthreads}. \label{fig:block}}
 \end{figure}
 
-\begin{figure}\centering
-\includegraphics[scale=0.125]{device.pdf}
-  \caption{Block reduce}
-\end{figure}
+If $t > 10$ the calculation does not fit into a single block and global memory and multiple kernel launches are necessary to communicate and synchronize between threads.
 
 
 
@@ -252,16 +254,34 @@ Assuming that the GPU used and the specified tree are known in advance, each thr
 
 
 \section{Experimental Results}\label{sec:exp}
+We evaluate the performance of PARSHA-256 and SHA-256 . 
 
-Here you evaluate your work using experiments. You start again with a
-very short summary of the section. The typical structure follows.
+\mypar{Experimental setup} The benchmarks were performed using the \emph{Ault} cluster of the CSCS (Swiss Natinonal Supercomputing Center). The used nodes adhere to the specification described in Table \ref{table:Ault}.
+All kernels were compiled using NVCC (NVIDIA CUDA Compiler \cite{nvcc}) version 11.1 with the following flags: \texttt{-O3 -std=c++11 -gen\-code arch=compute\_70,code=sm\_70}.
+The turbo boost of the accelerators were disabled using \texttt{export CUDA\-\_\-AUTO\-\_\-BOOST\-=\-0}.
+To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current \-kernels off --csv --profile\--from\--start off --print\--gpu\--trace --profile\--api\--trace all }. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native}.
+Note that only the time taken to hash the padded message was measured, but the time taken to preprocess the message was ignored because it is the same for every message.
 
-\mypar{Experimental setup} Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
-as well as the compiler, version, and flags used. If your work is about performance, 
-I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
 
-Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
-For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
+\begin{table}[h]
+\centering
+\caption{Specification of the Ault05/Ault06 nodes of the Ault cluster.\label{table:Ault}\\
+}
+\begin{tabularx}{\linewidth}{ l c }
+\toprule
+& Ault05/Ault06  \\
+\midrule
+Sockets & 2  \\
+Cores/Socket & 18\\
+Threads & 72 \\
+CPU Model & Intel® Xeon® Gold 6140  \\
+RAM/Node & 768 GB \\
+Accelerator & 4 $\times$ NVIDIA Tesla V100 (32GB PCIe) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+To collect performance results, each string was hashed 110 times with the first 10 iterations being warm-up rounds, where the kernel time was not measured. In the next 100 iterations the kernel time was measured.
 
 \mypar{Results}
 Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
