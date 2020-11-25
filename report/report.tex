@@ -258,9 +258,8 @@ We evaluate the performance of PARSHA-256 and SHA-256 .
 
 \mypar{Experimental setup} The benchmarks were performed using the \emph{Ault} cluster of the CSCS (Swiss Natinonal Supercomputing Center). The used nodes adhere to the specification described in Table \ref{table:Ault}.
 All kernels were compiled using NVCC (NVIDIA CUDA Compiler \cite{nvcc}) version 11.1 with the following flags: \texttt{-O3 -std=c++11 -gen\-code arch=compute\_70,code=sm\_70}.
-The turbo boost of the accelerators were disabled using \texttt{export CUDA\-\_\-AUTO\-\_\-BOOST\-=\-0}.
-To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current \-kernels off --csv --profile\--from\--start off --print\--gpu\--trace --profile\--api\--trace all }. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native}.
-Note that only the time taken to hash the padded message was measured, but the time taken to preprocess the message was ignored because it is the same for every message.
+To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current \-kernels off --csv --profile\--from\--start off --print\--gpu\--trace }. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native -std=c++14}. Host code was measured using \texttt{std\-::\-chrono\-::\-high\-\_\-resolution\-\-\_\-clock}. 
+It was only measured how long it takes to hash the padded message, the time for preprocessing the message was excluded as it is the same for every message.
 
 
 \begin{table}[h]
@@ -281,7 +280,7 @@ Accelerator & 4 $\times$ NVIDIA Tesla V100 (32GB PCIe) \\
 \end{tabularx}
 \end{table}
 
-To collect performance results, each string was hashed 110 times with the first 10 iterations being warm-up rounds, where the kernel time was not measured. In the next 100 iterations the kernel time was measured.
+To collect performance results, every benchmark was performed 110 times with the first 10 iterations being warm-up rounds, where the time was not measured. In the next 100 iterations the kernel time was measured.
 
 \mypar{Results}
 Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
