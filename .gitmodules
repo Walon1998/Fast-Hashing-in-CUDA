@@ -1,9 +1,9 @@
 [submodule "src/sha256_gpu"]
 	path = src/sha256_gpu
-	url = https://gitlab.ethz.ch/walon/sha256_gpu
+	url = https://github.com/Walon1998/SHA256_GPU
 [submodule "src/sha256_cpu"]
 	path = src/sha256_cpu
-	url = https://gitlab.ethz.ch/walon/sha256_cpu
+	url = https://github.com/Walon1998/SHA256_CPU
 [submodule "src/parsha256_gpu"]
 	path = src/parsha256_gpu
-	url = https://gitlab.ethz.ch/walon/parsha256_gpu
+	url = https://github.com/Walon1998/PARSHA256_GPU
