@@ -6,8 +6,8 @@
 *.blg
 *.fdb_latexmk
 *.fls
-cmake-build-*
-.idea/*
-.project
-/Debug/
+*cmake-build-*
+*.idea/*
+*.project
+*/Debug/*
 .#*
