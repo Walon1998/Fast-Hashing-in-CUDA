@@ -33,7 +33,8 @@ __global__ void parsha256_kernel_gpu_middleRound(int *__restrict__ input_message
     if (id < total_threads / 2) {
         input_message += 8 * id; // Offset for non leaf threads
     } else {
-        input_message += 8 * (total_threads / 2) + id * 24; // Offset for leaf threads
+        input_message += 8 * (total_threads / 2) + (id - (total_threads / 2)) * 24; // Offset for leaf threads
+
     }
 
 
