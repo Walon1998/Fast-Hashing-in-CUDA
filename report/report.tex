@@ -205,13 +205,13 @@ The message padding is performed on the host and then the padded message is copi
 After the message is stored in global memory, the kernel is called with the required number of threads and blocks.
 All constants used in the hash calculation are declared directly in the kernel using \emph{constexpr}, such that the compiler can optimize access and does not store the constants in memory. Similarly, the initial hash values are declared directly in the kernel. All functions used in the computation are marked with \emph{\_\_inline\_\_} and use \emph{const} input such that the compiler can inline and optimize them correctly.
 
-To compute the message schedule, an array of 64 words is allocated. This array is filled using two for-loops. The first loops copies 16 words from the input message into the array. The second for loops perform the calculation described in step 1 of \ref{sha256-comp}. Both loops are marked with \emph{\#pragma unroll}, as the iteration count is known in advance. 
+To compute the message schedule, an array of 64 words is allocated. This array is filled using two for-loops. The first loops copies 16 words from the input message into the array using vector loads. The second for loops perform the calculation described in step 1 of \ref{sha256-comp}. Both loops are marked with \emph{\#pragma unroll}, as the iteration count is known in advance. 
 
 Afterwards, the 64 rounds of permutations, as described in step 3 of \ref{sha256-comp}, is performed, using again an unrolled for loop.
 
 We note that only 16 words of the message schedule are used simultaneously, which means, it would be possible to integrate the generation of the message schedule into the permutation loop to save registers. However, since all loops are unrolled and all functions are inlined, the compiler can, by looking at the dependencies, find the correct instruction order, which minimizes register usage to maximize occupancy. 
 
-After all blocks are processed the final result is written back to global memory.
+After all blocks are processed the final result is written back to global memory using vector stores.
 
 \subsection{PARSHA-256}
 Similar to SHA-256, all preprocessing is performed in the host. Once the message is padded, the tree structure and all necessary information to hash the input message is known, 3 global buffers are allocated. One buffer stores the padded input message, the other two buffers store the output for each thread in a specific round. Using two buffers to store the intermediate results allows to read from one buffer while the other one is written to which significantly reduces the amount of synchronization needed between threads.
@@ -258,7 +258,7 @@ We evaluate the performance of PARSHA-256 and SHA-256 .
 
 \mypar{Experimental setup} The benchmarks were performed using the \emph{Ault} cluster of the CSCS (Swiss Natinonal Supercomputing Center). The used nodes adhere to the specification described in Table \ref{table:Ault}.
 All kernels were compiled using NVCC (NVIDIA CUDA Compiler \cite{nvcc}) version 11.1 with the following flags: \texttt{-O3 -std=c++11 -gen\-code arch=compute\_70,code=sm\_70}.
-To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current \-kernels off --csv --profile\--from\--start off --print\--gpu\--trace }. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native -std=c++14}. Host code was measured using \texttt{std\-::\-chrono\-::\-high\-\_\-resolution\-\-\_\-clock}. 
+To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current-\-kernels off --csv --profile\--from\--start off --print\--gpu\--trace }. The  turbo  boost  of  the  accelerators  were  disabled  using \texttt{export CUDA\_AUTO\_BOOST=0}. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native -std=c++14}. Host code was measured using \texttt{std\-::\-chrono\-::\-high\-\_\-resolution\-\-\_\-clock}. 
 It was only measured how long it takes to hash the padded message, the time for preprocessing the message was excluded as it is the same for every message.
 
 
@@ -283,6 +283,10 @@ Accelerator & 4 $\times$ NVIDIA Tesla V100 (32GB PCIe) \\
 To collect performance results, every benchmark was performed 110 times with the first 10 iterations being warm-up rounds, where the time was not measured. In the next 100 iterations the kernel time was measured.
 
 \mypar{Results}
+A normal SHA-256 implementation requires 3384 integer operations to hash a 512 bit block.
+In CUDA, it is possible to use the \emph{funnel shift} instruction to implement rotations, which reduces the instruction count drastically. In our main loop there are 1982 arithmetic instruction, that contribute to hashing, and only 22 non arithmetic instructions, which mean our implementation can reach up to 98.9\% of the reachable peak performance. Note that we compare against reachable peak performance and not \emph{real} peak performance, since in order to achieve real peak performance one has to use instructions that have a higher throughput than regular instructions (e.g. Fused Multiply Add), but these do not appear in SHA-256.
+
+In Fig 1, we can see ...
 Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
 
 For some tips on benchmarking including how to create a decent viewgraph see pages 22--27 in \cite{Pueschel:10}.
