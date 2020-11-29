@@ -4,10 +4,12 @@
 % --------------------------------------------------------------------------
 
 \documentclass[letterpaper]{article}
+\usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage{tabularx}
 \usepackage{spconf,amsmath,amssymb,graphicx}
 \usepackage{url}
+
 
 % Example definitions.
 % --------------------
@@ -65,9 +67,9 @@ should write the abstract last.
 \section{Introduction}\label{sec:intro}
 Hash functions are one of the most important operations in cryptographic applications, like digital signature algorithms, keyed-hash message authentication codes and the generation of random numbers. Furthermore, hashing is also used in many data structures and applications such as hash tables and for calculating checksums to compare files.  The acceleration of this routine is therefore of great importance for many areas.
 
-\mypar{Motivation} With the recent rise of the cryptocurrencies, it is as important as never before to hash as fast as possible. Many cryptocurrencies are based on the \emph{proof of work} \cite{pow} principle, in which one party (the prover) proves to others (the verifiers) that a certain amount of computational effort has been expended for some purpose. For example, in the Bitcoin protocol \cite{nakamoto2012bitcoin}, users have to find a \emph{nonce} such that the SHA-256 hash of the nonce and the current block is smaller than the current target of the network. Since only the first miner who finds a nonce that fulfills the target receives a reward, it is important to try out many SHA-256 hashes as fast as possible. Today mostly ASICs (application-specific integrated circuit) are used to mine Bitcoins, as ASICs work more efficient and compute more hashes per second than traditional hardware.
+With the recent rise of the cryptocurrencies, it is as important as never before to hash as fast as possible. Many cryptocurrencies are based on the \emph{proof of work} \cite{pow} principle, in which one party (the prover) proves to others (the verifiers) that a certain amount of computational effort has been expended for some purpose. For example, in the Bitcoin protocol \cite{nakamoto2012bitcoin}, users have to find a \emph{nonce} such that the SHA-256 hash of the nonce and the current block is smaller than the current target of the network. Since only the first miner who finds a nonce that fulfills the target receives a reward, it is important to try out many SHA-256 hashes as fast as possible. Today mostly ASICs (application-specific integrated circuit) are used to mine Bitcoins, as ASICs work more efficient and compute more hashes per second than traditional hardware.
 
-While the original SHA-256 implementation, as proposed in the Secure Hash Standart (SHS) \cite{sha} by the National Institute of Standards and Technology (NIST), does not allow for much parallelization due to sequential dependencies, it is possible to use the compression function of SHA-256 along with the Sarkar-Schellenberg composition principle \cite{sarkar} to create a parallel collision resistant hash function: PARSHA-256 \cite{parsha256}. 
+While the original SHA-256 implementation, as proposed in the Secure Hash Standart (SHS) \cite{sha} by the National Institute of Standards and Technology (NIST), does not allow for much parallelization due to sequential dependencies, it is possible to use the compression function of SHA-256 along with the Sarkar-Schellenberg composition principle \cite{sarkar} to create a parallel collision resistant hash function called PARSHA-256 \cite{parsha256}. 
 
 Implementing PARSHA-256 efficiently,  even  within  a  single GPU or CPU, is a complex challenge that needs to take the memory mode land architectural details into account.
 
@@ -98,7 +100,7 @@ Preprocessing  consists  of  three  steps:  padding  the  message,  parsing  the
 Before  hash  computation  begins,  the  initial 8  hash  values, $H^{(0)}_0$ up to $H^{(0)}_7$, must be set. These can be taken from the official document \cite{sha}.
 
 \subsubsection{Hash Computation}\label{sha256-comp}
-SHA-256 uses 8 working variables with size 1 word and  six  logical  functions ($Ch(x,y,z)$, $Maj(x,y,z)$, $\sigma_0(x)$, $\sigma_1(x)$, $\Sigma_0(x)$,$\Sigma_1(x)$),  where each  function  operates  on  32-bit words, which are represented as $x$, $y$, and $z$. The result of each function is a new 32-bit word. The exact specification of these functions can be found in the official document \cite{sha}. 
+SHA-256 uses eight  32-bit working variables and  six  logical  functions ($Ch(x,y,z)$,  $Maj(x,y,z)$, $\sigma_0(x)$, $\sigma_1(x)$, $\Sigma_0(x)$, $\Sigma_1(x)$),  where each  function  operates  on  32-bit words, which are represented as $x$, $y$, and $z$. The result of each function is a new 32-bit word. The exact specification of these functions can be found in the official document \cite{sha}. 
 
 Each message block is processed in order, using the following steps:
 \begin{enumerate}
@@ -110,14 +112,14 @@ M_t^{(i)} & 0 \leq t \leq 15 \\
 
 \item The eight  working variables are initialized with the  $(i-1)^{st}$ hash values. This means that block $i$ receives as working variables the message digest of block $i-1$, while the first block receives the initial hash values as working variables. 
 
-\item In 64 rounds the working variables are permuted using the above functions, the message schedule and predefined constants. The exact specification found in the official document \cite{sha}. 
+\item In 64 rounds the working variables are permuted using the above functions, the message schedule and predefined constants. The exact specification can found in the official document \cite{sha}. 
 
 \item To compute the $i^{th}$ intermediate hash value, the 8 working variables are added to the $(i-1)^{th}$ hash value.
 
 
 \end{enumerate}
 
-After repeating steps one through four a for every block, the resulting 256-bit message digest of the message, $M$, is the hash value of the final block.
+After repeating steps one through four  for every block, the resulting 256-bit message digest of the message, $M$, is the hash value of the final block.
 
 \subsection{PARSHA-256 \cite{parsha256}}
 PARSHA-256 uses the compression function of SHA-256 along with the Sarkar-Schellenberg \cite{sarkar} principle to create a parallelizable collision resistant hash function. The overall approach does look not that different from SHA-256, but there is one major change. While the task graph in SHA-256 is linear, because the previous block has to be processed to process the next one, in PARSHA-256 the processors are arranged in a binary tree (similar to a reduction), which allows to work on more than one block at a time. 
@@ -156,10 +158,10 @@ The exact procedure how the message is padded and divided into blocks is rather 
 
 
 \subsubsection{Hash Computation}\label{parsha-hash}
-This subsection demonstrates the hash computation of a message of suitable length with a processor tree of height $T = 3$ and $l = 0$. The message length is $L = 2^T(p+2)(n-3)-(n-2m)$, for some integer $p \geq 0$.
+This subsection demonstrates the hash computation of a message of suitable length with a processor tree of height $T = 3$ and $l = 0$. The message length is $L = 2^T(p+2)(n-m)-(n-2m)$, for some integer $p \geq 0$.
 
 
-The whole computation will be done in $(p+4)$ parallel rounds. In each round some or all of the processors work in parallel and invoke the compression function on its input to produce its output.
+The whole computation will be done in $(p+4)$ parallel rounds. In each round, some or all of the processors work in parallel and invoke the compression function on its input to produce its output.
 
 The input message will be broken up into disjoint substring of length $n$ or $n-2m$. These substrings will be provided as input to the processors in the different rounds. We call $u_i$ the substring of the input message provided to the processor $P_i$ in a particular round and $z_i$ the output message of processor $P_i$ in a particular round.
 
@@ -218,7 +220,7 @@ Similar to SHA-256, all preprocessing is performed in the host. Once the message
 
 Each thread knows the \emph{id} of its children and thus the address, from where the input can be read for the next round. One kernel is launched for each round, as described in \ref{parsha-hash}. Four different kernels were implemented, one for the first round, one for round 2 to $(p+1)$, one for the last round and one for all the other rounds, in which some threads copy the input to the output buffer. As described in Equation \ref{eq_proc},  in each round each thread calls the compression function using its input or copies its input to the output buffer. After each round, the two buffers are swapped, such that the output from the previous round is the input for the next round. 
 
-\subsubsection{Shared Memory and Registers}
+\subsubsection{Shared Memory and Registers}\label{optimzations}
 The exclusive use of global memory and multiple kernel launches for communication and synchronization between threads makes the code relatively elegant, since execution is determined only by which thread has which children. However, this approach is also slow and does not make use of the more advanced memory and synchronization mechanisms of modern GPUs, such as shared memory, registers or warp shuffle instructions.
 
 The first problem, if these mechanisms are to be used, is the following: The PARSHA-256 specification only specifies a maximum tree height $T$, but if the message is sufficiently small, a smaller tree with effective tree height $t$ is used instead. This means that the exact structure of the tree is not known in advance and therefore it is also not how many threads will be launched.
@@ -236,7 +238,7 @@ Assuming that the GPU used and the specified tree are known in advance, each thr
 \end{figure}
 
 
-\mypar{Block PARSHA-256} If $t \leq 10$ at most 1024 threads are launched, which means the whole calculation can fit into in a single block, see Fig. \ref{fig:block}. In that case shared memory and \emph{\_\_syncthreads()} can be used to communicate and synchronize between the warps. Note that in this case, the property that a thread with the id $i$ has two children with the id $2i$ and $2i+1$ no longer applies, but a more complicated relationship is required so that communication across warps is minimized.
+\mypar{Block PARSHA-256} If $t \leq 10$ at most 1024 threads are launched, which means the whole calculation can fit into in a single thread block, see Fig. \ref{fig:block}. In that case shared memory and \emph{\_\_syncthreads()} can be used to communicate and synchronize between the warps. Note that in this case, the property that a thread with the id $i$ has two children with the id $2i$ and $2i+1$ no longer applies, but a more complicated relationship is required so that communication across warps is minimized.
 
 \begin{figure}[h]\centering
 \includegraphics[scale=0.125]{block2.pdf}
@@ -258,7 +260,8 @@ We evaluate the performance of PARSHA-256 and SHA-256 .
 
 \mypar{Experimental setup} The benchmarks were performed using the \emph{Ault} cluster of the CSCS (Swiss Natinonal Supercomputing Center). The used nodes adhere to the specification described in Table \ref{table:Ault}.
 All kernels were compiled using NVCC (NVIDIA CUDA Compiler \cite{nvcc}) version 11.1 with the following flags: \texttt{-O3 -std=c++11 -gen\-code arch=compute\_70,code=sm\_70}.
-To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--con\-current-\-kernels off --csv --profile\--from\--start off --print\--gpu\--trace }. The  turbo  boost  of  the  accelerators  were  disabled  using \texttt{export CUDA\_AUTO\_BOOST=0}. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native -std=c++14}. Host code was measured using \texttt{std\-::\-chrono\-::\-high\-\_\-resolution\-\-\_\-clock}. 
+The  turbo  boost  of  the  accelerators  were  disabled  using \texttt{export \- CUDA\-\_\-AUTO\-\_\-BOOST\-=\-0}.
+To measure the performance of the kernels \emph{nvprof} \cite{nvprof} was used with the following options: \texttt{--csv --con\-current-\-kernels off  --profile\--from\--start off --print\--gpu\--trace }. As host compiler gcc \cite{gcc} version 10.1 was used with the following flags: \texttt{-O3 -march=native -std=c++14}. Host code was measured using \texttt{std\-::\-chrono\-::\-high\-\_\-re\-so\-lu\-ti\-on\-\-\_\-clock}. 
 It was only measured how long it takes to hash the padded message, the time for preprocessing the message was excluded as it is the same for every message.
 
 
@@ -286,88 +289,41 @@ To collect performance results, every benchmark was performed 110 times with the
 A normal SHA-256 implementation requires 3384 integer operations to hash a 512 bit block.
 In CUDA, it is possible to use the \emph{funnel shift} instruction to implement rotations and 3-way arithmetic instructions, which reduces the instruction count drastically. In our main loop there are 1385 arithmetic instruction, that contribute to hashing, and only 22 non arithmetic instructions, which mean our implementation can reach up to 98.4\% of the reachable peak performance. Note that we compare against reachable peak performance and not \emph{real} peak performance, since in order to achieve real peak performance one has to use instructions that have a higher throughput than regular instructions (e.g. Fused Multiply Add), but these do not appear in SHA-256.
 
-In Fig 1, we can see ...
-Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
+\begin{figure}[h]\centering
+\includegraphics[scale=0.23]{plot_parsha.pdf}
+  \caption{Performance of SHA-256 on a NVIDIA Tesla V100 with 80 SMs and 64 threads per SM. Occupancy is defined as follows: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
+\end{figure}
+ 
+Fig \ref{fig:sha256} shows that, by using the right combination of threads per thread blocks and thread blocks, our implementation can achieve this theoretical upper bound.
 
-For some tips on benchmarking including how to create a decent viewgraph see pages 22--27 in \cite{Pueschel:10}.
 
-{\bf Comments:}
-\begin{itemize}
-\item Create very readable, attractive plots (do 1 column, not 2 column plots
-for this report) with readable font size. However, the font size should also not be too large; typically it is smaller than the text font size.
-An example is in Fig.~\ref{fftperf} (of course you can have a different style).
-\item Every plot answers a question. You state this question and extract the
-answer from the plot in its discussion.
-\item Every plot should be referenced and discussed.
-\end{itemize}
-
-\begin{figure}\centering
-  \includegraphics[scale=0.33]{dft-performance.eps}
-  \caption{Performance of four single precision implementations of the
-  discrete Fourier transform. The operations count is roughly the
-  same. The labels in this plot are maybe a little bit too small.\label{fftperf}}
+\begin{figure}[h]\centering
+\includegraphics[scale=0.23]{plot_parsha.pdf}
+  \caption{Performance of PARSHA-256 on a NVIDIA Tesla V100 using $T = 13$  against SHA-256 on a Intel Xeon Gold 6140. PARSHA-256 was launched using at most 128 threads per thread block and SHA-256 makes no use of  of vector instructions or the Intel SHA extensions \cite{SHA_Extensions}.   \label{fig:parsha256}}
 \end{figure}
 
+
+Fig. \ref{fig:parsha256} shows the performance of our implementation of PARSHA-256 in CUDA against a naive CPU implementation of SHA-256.
+The CPU implementation is naive because it does not make explicit use of vector instructions like AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}.
+
+ 
+One can see that for inputs $\leq  10^4$ the CPU implementation is faster. However, as the input size increases, the overhead caused by the kernel launches will will get proportionally smaller and more threads of the GPU can be used, resulting in a big performance advantage for PARSHA-256.
+For an input of size $10^8$ the PARSHA-256 implementation is about $230 \times$ faster than the naive CPU implementation.
+In order to achieve better performance with smaller input sizes, the suggestions described in \ref{optimzations} can be implemented.
+
+
+
+
+
+
 \section{Conclusions}
+We have demonstrated that SHA-256 can be efficiently implemented in CUDA and that PARSHA-256 in CUDA provides significant performance benefits over a naive CPU implementation of SHA-256 if the message is sufficiently large.
+It remains to be investigated how PARSHA-256 in CUDA compares against more optimized versions of SHA-256 that use AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}, especially if energy efficiency is considered.
 
-Here you need to summarize what you did and why this is
-important. {\em Do not take the abstract} and put it in the past
-tense. Remember, now the reader has (hopefully) read the report, so it
-is a very different situation from the abstract. Try to highlight
-important results and say the things you really want to get across
-such as high-level statements (e.g., we believe that .... is the right
-approach to .... Even though we only considered x, the
-.... technique should be applicable ....) You can also formulate next
-steps if you want. Be brief. After the conclusions there are only the references.
+We believe that it is the right approach to develop parallizable hash functions in order to benefit from future devices with high core counts.
+However, in order to be efficiently implemented in CUDA, the hash tree should behave more like a reduction, such that even for large inputs, registers and shared memory can be used to communicate between threads.
 
-\section{Further comments}
-
-Here we provide some further tips.
-
-\mypar{Further general guidelines}
-
-\begin{itemize}
-\item For short papers, to save space, I use paragraph titles instead of
-subsections, as shown in the introduction.
-
-\item It is generally a good idea to break sections into such smaller
-units for readability and since it helps you to (visually) structure the story.
-
-\item The above section titles should be adapted to more precisely
-reflect what you do.
-
-\item Each section should be started with a very
-short summary of what the reader can expect in this section. Nothing
-more awkward as when the story starts and one does not know what the
-direction is or the goal.
-
-\item Make sure you define every acronym you use, no matter how
-convinced you are the reader knows it.
-
-\item Always spell-check before you submit (to us in this case).
-
-\item Be picky. When writing a paper you should always strive for very
-high quality. Many people may read it and the quality makes a big difference.
-In this class, the quality is part of the grade.
-
-\item Books helping you to write better: \cite{Higham:98} and \cite{Strunk:00}.
-
-\item Conversion to pdf (latex users only): 
-
-dvips -o conference.ps -t letter -Ppdf -G0 conference.dvi
-
-and then
-
-ps2pdf conference.ps
-\end{itemize}
-
-\mypar{Graphics} For plots that are not images {\em never} generate the bitmap formats
-jpeg, gif, bmp, tif. Use eps, which means encapsulate postscript. It is
-scalable since it is a vector graphic description of your graph. E.g.,
-from Matlab, you can export to eps.
-
-The format pdf is also fine for plots (you need pdflatex then), but only if the plot was never before in the format 
-jpeg, gif, bmp, tif.
+Our implementations are publicly available on \href{ https://github.com/Walon1998/Fast-Hashing-in-CUDA}{Github}.
 
 
 % References should be produced using the bibtex program from suitable

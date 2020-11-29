@@ -1,0 +1,17 @@
+\BOOKMARK [1][-]{section.1}{ Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{ Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{ SHA-256 sha}{section.2}% 3
+\BOOKMARK [3][-]{subsubsection.2.1.1}{ Preprocessing}{subsection.2.1}% 4
+\BOOKMARK [3][-]{subsubsection.2.1.2}{ Hash Computation}{subsection.2.1}% 5
+\BOOKMARK [2][-]{subsection.2.2}{ PARSHA-256 parsha256}{section.2}% 6
+\BOOKMARK [3][-]{subsubsection.2.2.1}{ Compression Function}{subsection.2.2}% 7
+\BOOKMARK [3][-]{subsubsection.2.2.2}{ Processor Tree}{subsection.2.2}% 8
+\BOOKMARK [3][-]{subsubsection.2.2.3}{ Formatting the Message}{subsection.2.2}% 9
+\BOOKMARK [3][-]{subsubsection.2.2.4}{ Hash Computation}{subsection.2.2}% 10
+\BOOKMARK [1][-]{section.3}{ Our Work}{}% 11
+\BOOKMARK [2][-]{subsection.3.1}{ SHA-256}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.2}{ PARSHA-256}{section.3}% 13
+\BOOKMARK [3][-]{subsubsection.3.2.1}{ Shared Memory and Registers}{subsection.3.2}% 14
+\BOOKMARK [1][-]{section.4}{ Experimental Results}{}% 15
+\BOOKMARK [1][-]{section.5}{ Conclusions}{}% 16
+\BOOKMARK [1][-]{section.6}{ References}{}% 17
