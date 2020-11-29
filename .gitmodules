@@ -7,3 +7,6 @@
 [submodule "src/parsha256_gpu"]
 	path = src/parsha256_gpu
 	url = https://github.com/Walon1998/PARSHA256_GPU
+[submodule "src/FastHashingCudaPlots"]
+	path = src/FastHashingCudaPlots
+	url = https://github.com/Walon1998/FastHashingCudaPlots
