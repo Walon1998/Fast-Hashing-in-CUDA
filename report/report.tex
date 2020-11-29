@@ -229,7 +229,7 @@ The first problem, if these mechanisms are to be used, is the following: The PAR
 The second problem concerns older models of NVIDIA GPUs in which all threads in a warp share the same instruction pointer. If this is the case, it can happen that one thread in warp has to communicate through global memory while all other thread can communicate through shared memory or registers.
 In the code itself these behaviors would have to be distinguished with an \emph{if}-statement. Since all threads share the same instruction pointer, both cases are executed sequentially and the latency has basically doubled. In newer architectures this behaviour does not occur any more since every thread has its own instruction pointer.
 
-Assuming that the GPU used and the specified tree are known in advance, each thread has its own instruction counter, it is possible to implement PARSHA-256 more efficiently by using more advanced mechanisms. We will now present implementations for some special cases.
+Assuming that the GPU used and the specified tree are known in advance, each thread in a warp has its own instruction pointer, it is possible to implement PARSHA-256 more efficiently by using more advanced mechanisms. We will now present implementations for some special cases.
 
 \mypar{Warp PARSHA-256} If $t \leq 5$ at most 32 threads are launched, which means the whole calculation can fit into in a single warp, see Fig. \ref{fig:warp}. In that case warp shuffle instruction can be used to exchange the data, \emph{\_\_syncwarp()} can be used to synchronize the threads and the intermediate results can be stored into registers.
 
