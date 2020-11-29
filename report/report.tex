@@ -58,10 +58,9 @@
 
 
 \begin{abstract}
-Describe in concise words what you do, why you do it (not necessarily
-in this order), and the main result.  The abstract has to be
-self-contained and readable for a person in the general area. You
-should write the abstract last.
+Hash functions, such as SHA-256 \cite{sha}, are extensively used in cryptographic applications.
+However, SHA-256 cannot be parallelized due to sequential dependencies.
+Using the Sarkar-Schellenberg composition principle \cite{sarkar} in combination with SHA-256 gives rise to PARSHA-256 \cite{parsha256}, a parallel collision resistant hash function. We present efficient implementations for both SHA-256 and  PARSHA-256 in CUDA. Our results demonstrate that for large messages PARSHA-256 can significantly outperform SHA-256.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -112,7 +111,7 @@ M_t^{(i)} & 0 \leq t \leq 15 \\
 
 \item The eight  working variables are initialized with the  $(i-1)^{st}$ hash values. This means that block $i$ receives as working variables the message digest of block $i-1$, while the first block receives the initial hash values as working variables. 
 
-\item In 64 rounds the working variables are permuted using the above functions, the message schedule and predefined constants. The exact specification can found in the official document \cite{sha}. 
+\item In 64 rounds the working variables are permuted using the above functions, the message schedule and predefined constants. The exact specification can be found in the official document \cite{sha}. 
 
 \item To compute the $i^{th}$ intermediate hash value, the 8 working variables are added to the $(i-1)^{th}$ hash value.
 
@@ -290,24 +289,23 @@ A normal SHA-256 implementation requires 3384 integer operations to hash a 512 b
 In CUDA, it is possible to use the \emph{funnel shift} instruction to implement rotations and 3-way arithmetic instructions, which reduces the instruction count drastically. In our main loop there are 1385 arithmetic instruction, that contribute to hashing, and only 22 non arithmetic instructions, which mean our implementation can reach up to 98.4\% of the reachable peak performance. Note that we compare against reachable peak performance and not \emph{real} peak performance, since in order to achieve real peak performance one has to use instructions that have a higher throughput than regular instructions (e.g. Fused Multiply Add), but these do not appear in SHA-256.
 
 \begin{figure}[h]\centering
-\includegraphics[scale=0.23]{plot_parsha.pdf}
+\includegraphics[scale=0.23]{plot_sha.pdf}
   \caption{Performance of SHA-256 on a NVIDIA Tesla V100 with 80 SMs and 64 threads per SM. Occupancy is defined as follows: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
 \end{figure}
  
-Fig \ref{fig:sha256} shows that, by using the right combination of threads per thread blocks and thread blocks, our implementation can achieve this theoretical upper bound.
+Fig \ref{fig:sha256} shows that, by using the right combination of thread blocks and  threads per thread block, our implementation can achieve this theoretical lower bound.
 
 
 \begin{figure}[h]\centering
 \includegraphics[scale=0.23]{plot_parsha.pdf}
-  \caption{Performance of PARSHA-256 on a NVIDIA Tesla V100 using $T = 13$  against SHA-256 on a Intel Xeon Gold 6140. PARSHA-256 was launched using at most 128 threads per thread block and SHA-256 makes no use of  of vector instructions or the Intel SHA extensions \cite{SHA_Extensions}.   \label{fig:parsha256}}
+  \caption{Performance of PARSHA-256 on a NVIDIA Tesla V100 using $T = 13$  against SHA-256 on a Intel Xeon Gold 6140. PARSHA-256 was launched using at most 128 threads per thread block. SHA-256 on CPU makes no use of vector instructions or the Intel SHA extensions \cite{SHA_Extensions}. SHA-256 on GPU was launched with only one thread.   \label{fig:parsha256}}
 \end{figure}
 
-
-Fig. \ref{fig:parsha256} shows the performance of our implementation of PARSHA-256 in CUDA against a naive CPU implementation of SHA-256.
+Fig. \ref{fig:parsha256} shows the performance of our implementation of PARSHA-256 and SHA-256 in CUDA against a naive CPU implementation of SHA-256.
 The CPU implementation is naive because it does not make explicit use of vector instructions like AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}.
 
  
-One can see that for inputs $\leq  10^4$ the CPU implementation is faster. However, as the input size increases, the overhead caused by the kernel launches will will get proportionally smaller and more threads of the GPU can be used, resulting in a big performance advantage for PARSHA-256.
+One can see that for inputs $\leq  10^4$ the CPU implementation is the fastest. However, as the input size increases, the overhead caused by the kernel launches will will get proportionally smaller and PARSHA-256 can use more threads of the GPU, resulting in a big performance advantage for PARSHA-256.
 For an input of size $10^8$ the PARSHA-256 implementation is about $230 \times$ faster than the naive CPU implementation.
 In order to achieve better performance with smaller input sizes, the suggestions described in \ref{optimzations} can be implemented.
 
