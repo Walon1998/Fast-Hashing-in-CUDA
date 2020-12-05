@@ -69,15 +69,15 @@ Using the Sarkar-Schellenberg composition principle \cite{sarkar} in combination
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
-Hash functions are one of the most important operations in cryptographic applications, like digital signature algorithms, keyed-hash message authentication codes, encryptions and the generation of random numbers. Furthermore, hashing is also used in many data structures and applications such as hash tables and for calculating checksums to compare files.  The acceleration of this routine is therefore of great importance for many areas.
+Hash functions are one of the most important operations in cryptographic applications, like digital signature algorithms, keyed-hash message authentication codes, encryptions and the generation of random numbers. Furthermore, hashing is also used in many data structures and applications such as hash tables and for calculating checksums to compare files.  The development and implementation of fast hash functions is therefore of great importance for many areas.
 
-With the recent rise of the cryptocurrencies, it is as important as never before to hash as fast as possible. Many cryptocurrencies are based on the \emph{proof of work} \cite{pow} principle, in which one party (the prover) proves to others (the verifiers) that a certain amount of computational effort has been expended for some purpose. For example, in the Bitcoin protocol \cite{nakamoto2012bitcoin}, users have to find a \emph{nonce} such that the SHA-256 hash of the nonce and the current block is smaller than the current target of the network. Since only the first miner who finds a nonce that fulfills the target receives a reward, it is important to try out many SHA-256 hashes as fast as possible. Today mostly ASICs (application-specific integrated circuit) are used to mine Bitcoins, as ASICs work more efficient and compute more hashes per second than traditional hardware.
+With the recent rise of the cryptocurrencies, it is as important as never before to hash as fast as possible. Many cryptocurrencies are based on the \emph{proof of work} \cite{pow} principle, in which one party (the prover) proves to others (the verifiers) that a certain amount of computational effort has been expended for some purpose. For example, in the Bitcoin protocol \cite{nakamoto2012bitcoin}, users have to find a \emph{nonce} such that the SHA-256 hash of the nonce within the current block is smaller than the current target of the network. Since only the first miner who finds a nonce that fulfills the target receives a reward, it is important to try out many SHA-256 hashes as fast as possible. Today mostly ASICs (application-specific integrated circuit) are used to mine Bitcoins, as ASICs work more efficient and compute more hashes per second than traditional hardware.
 
 While the original SHA-256 implementation, as proposed in the Secure Hash Standart (SHS) \cite{sha} by the National Institute of Standards and Technology (NIST), does not allow for much parallelization due to sequential dependencies, it is possible to use the compression function of SHA-256 along with the Sarkar-Schellenberg composition principle \cite{sarkar} to create a parallel collision resistant hash function called PARSHA-256 \cite{parsha256}. 
 
-Implementing PARSHA-256 efficiently,  even  within  a  single GPU or CPU, is a complex challenge that needs to take the memory mode land architectural details into account.
+Implementing PARSHA-256 efficiently is a complex challenge that needs to take the memory model and architectural details into account.
 
-In this work we try to speed up hashing by writing hashing algorithms in CUDA \cite{cuda} to execute them on a GPU. We have divided this project into two sub-projects. The first one is the "Bitcoin" scenario, where the goal is to calculate many independent SHA-256 computation in parallel. The second case is PARSHA-256, where the goal is to implement the proposed algorithm in CUDA. 
+In this work, we try to accelerate hashing in CUDA \cite{cuda}. We have divided this project into two sub-projects. The first one is the \emph{Bitcoin scenario}, with the goal  to calculate many independent SHA-256 computation in parallel. The second case is PARSHA-256, where the goal is to implement the proposed  algorithm efficiently in CUDA. 
 
 \mypar{Related work} To our knowledge there is no comparable implementation of PARSHA-256 which runs on a GPU. There exists only the implementation of the original paper, which uses multithreading \cite{parsha256}. 
 On the other hand, there are countless implementations of Bitcoin Miners in CUDA \cite{cbuchner,geedo}, as this was the most prominent way to mine Bitcoins before ASICs were introduced. 
@@ -206,7 +206,7 @@ SHA-256 is specified using binary input and output, but most implementations, in
 The message padding is performed on the host and then the padded message is copied into the global memory of the GPU. In a real Bitcoin Miner the message has to be adapted to the \emph{threadIdx.x} and \emph{blockIdx.x}, as each thread has to process a different nonce. The modification should be performed locally to each thread using its registers and not on the globally stored message. However, we omitted this modification and all threads work on exactly the same input message, since our goal was not to create a Bitcoin Miner, but to get a performance estimate of the involved hashing.
 
 After the message is stored in global memory, the kernel is called with the required number of threads and blocks.
-All constants used in the hash calculation are declared directly in the kernel using \emph{constexpr}, such that the compiler can optimize access and does not store the constants in memory. Similarly, the initial hash values are declared directly in the kernel. All functions used in the computation are marked with \emph{\_\_inline\_\_} and use \emph{const} input such that the compiler can inline and optimize them correctly.
+All constants used in the hash calculation are declared directly in the kernel using \emph{constexpr}, such that the compiler can optimize access. Similarly, the initial hash values are declared directly in the kernel. All functions used in the computation are marked with \emph{\_\_inline\_\_} and use \emph{const} input such that the compiler can inline and optimize them correctly.
 
 To compute the message schedule, an array of 64 words is allocated. First, 16 words are copied from the input message into the array using vector loads. Then an unrolled for loop perform the calculation described in step 1 of \ref{sha256-comp}.
 
@@ -276,7 +276,7 @@ It was only measured how long it takes to hash the padded message, the time for 
 Sockets & 2  \\
 Cores/Socket & 18\\
 Threads & 72 \\
-CPU Model & Intel® Xeon® Gold 6140  \\
+CPU Model & Intel Xeon Gold 6140 (2.30 - 3.70 GHz)  \\
 RAM/Node & 768 GB \\
 Accelerator & 4 $\times$ NVIDIA Tesla V100 (32GB PCIe) \\
 \bottomrule
@@ -287,11 +287,12 @@ To collect performance results, every benchmark was performed 110 times with the
 
 \mypar{Results}
 A normal SHA-256 implementation requires 3384 integer operations to hash a 512 bit block.
-In CUDA, it is possible to use the \emph{funnel shift} instruction to implement rotations and 3-way arithmetic instructions, which reduces the instruction count drastically. In our main loop there are 1385 arithmetic instruction, that contribute to hashing, and only 22 non arithmetic instructions, which mean our implementation can reach up to 98.4\% of the reachable peak performance. Note that we compare against reachable peak performance and not \emph{real} peak performance, since in order to achieve real peak performance one has to use instructions that have a higher throughput than regular instructions (e.g. Fused Multiply Add), but these do not appear in SHA-256.
+In CUDA, it is possible to use the \emph{funnel shift} instruction to implement rotations and 3-way arithmetic instructions, which reduces the instruction count drastically. In our main loop there are 1385 arithmetic instruction, that contribute to hashing, and only 22 non arithmetic instructions, which mean our implementation can reach up to 98.4\% of the reachable peak performance.
+%Note that we compare against reachable peak performance and not \emph{real} peak performance, since in order to achieve real peak performance one has to use instructions that have a higher throughput than regular instructions (e.g. Fused Multiply Add), but these do not appear in SHA-256.
 
 \begin{figure}[h]\centering
 \includegraphics[scale=0.23]{plot_sha.pdf}
-  \caption{Performance of SHA-256 on a NVIDIA Tesla V100 (80 SMs, 64 threads per SM) using various launch configurations. Occupancy is defined as follows: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
+  \caption{Performance of SHA-256 on a NVIDIA Tesla V100 (80 SMs, 64 threads per SM) using various launch configurations ($<$threads per thread block, thread blocks$>$). Occupancy is defined as follows: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
 \end{figure}
  
 Fig \ref{fig:sha256} shows that, by using the right combination of thread blocks and  threads per thread block, our implementation can achieve this theoretical lower bound.
@@ -302,18 +303,11 @@ Fig \ref{fig:sha256} shows that, by using the right combination of thread blocks
   \caption{Performance of PARSHA-256 on a NVIDIA Tesla V100 using $T = 13$  against SHA-256 on a Intel Xeon Gold 6140. PARSHA-256 was launched using at most 128 threads per thread block. SHA-256 on CPU makes no use of vector instructions or the Intel SHA extensions \cite{SHA_Extensions}. SHA-256 on GPU was launched with only one thread.   \label{fig:parsha256}}
 \end{figure}
 
-Fig. \ref{fig:parsha256} shows the performance of our implementation of PARSHA-256 and SHA-256 in CUDA against a naive CPU implementation of SHA-256.
-The CPU implementation is naive because it does not make use of vector instructions like AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}.
+Fig. \ref{fig:parsha256} shows the performance of our implementation of PARSHA-256 and SHA-256 in CUDA against a naive CPU implementation of SHA-256, that makes no make use of vector instructions like AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}.
 
- 
-One can see that for inputs $\leq  10^4$ the CPU implementation is the fastest. However, as the input size increases, the overhead caused by the kernel launches will will get proportionally smaller and PARSHA-256 can use more threads of the GPU, resulting in a big performance advantage for PARSHA-256.
+For inputs $\leq  10^4$ the CPU implementation is the fastest. However, as the input size increases, the overhead caused by the kernel launches will will get proportionally smaller and PARSHA-256 can use more threads of the GPU, resulting in a big performance advantage for PARSHA-256.
 For an input of size $10^8$ the PARSHA-256 implementation is about $230 \times$ faster than the naive CPU implementation.
 In order to achieve better performance with smaller input sizes, the suggestions described in \ref{optimzations} can be implemented.
-
-
-
-
-
 
 \section{Conclusions}
 We have demonstrated that SHA-256 can be efficiently implemented in CUDA and that PARSHA-256 in CUDA provides significant performance benefits over a naive CPU implementation of SHA-256 if the message is sufficiently large.
