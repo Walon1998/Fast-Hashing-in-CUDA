@@ -292,7 +292,7 @@ In CUDA, it is possible to use the \emph{funnel shift} instruction to implement 
 
 \begin{figure}[h]\centering
 \includegraphics[scale=0.23]{plot_sha.pdf}
-  \caption{Performance of SHA-256 on a NVIDIA Tesla V100 (80 SMs, 64 threads per SM) using various launch configurations ($<$threads per thread block, thread blocks$>$). Occupancy is defined as follows: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
+  \caption{Performance of SHA-256 on a NVIDIA Tesla V100 (80 SMs, 64 threads per SM) using various launch configurations ($<$thread blocks, threads per thread block$>$). Occupancy: $\lceil \frac{threads\_per\_threadblock}{ 64} \rceil * \lceil \frac{blocks\_launched}{  80} \rceil$.   \label{fig:sha256}}
 \end{figure}
  
 Fig \ref{fig:sha256} shows that, by using the right combination of thread blocks and  threads per thread block, our implementation can achieve this theoretical lower bound.
@@ -313,7 +313,7 @@ In order to achieve better performance with smaller input sizes, the suggestions
 We have demonstrated that SHA-256 can be efficiently implemented in CUDA and that PARSHA-256 in CUDA provides significant performance benefits over a naive CPU implementation of SHA-256 if the message is sufficiently large.
 It remains to be investigated how PARSHA-256 in CUDA compares against more optimized versions of SHA-256 that use AVX-512 \cite{avx512} or the Intel SHA extensions \cite{SHA_Extensions}, especially if energy efficiency is considered.
 
-We believe that it is the right approach to develop parallizable hash functions in order to benefit from future devices with high core counts.
+We believe that it is the right approach to develop parallelizable hash functions in order to benefit from future devices with high core counts.
 However, in order to be efficiently implemented in CUDA, the hash tree should behave more like a reduction, such that even for large inputs, registers and shared memory can be used to communicate between threads.
 
 Our implementations are publicly available on \href{ https://github.com/Walon1998/Fast-Hashing-in-CUDA}{Github}.
