@@ -1,0 +1,12 @@
+[submodule "SHA256_GPU"]
+	path = SHA256_GPU
+	url = https://github.com/Walon1998/SHA256_GPU
+[submodule "PARSHA256_GPU"]
+	path = PARSHA256_GPU
+	url = https://github.com/Walon1998/PARSHA256_GPU
+[submodule "SHA256_CPU"]
+	path = SHA256_CPU
+	url = https://github.com/Walon1998/SHA256_CPU
+[submodule "FastHashingCudaPlots"]
+	path = FastHashingCudaPlots
+	url = https://github.com/Walon1998/FastHashingCudaPlots
